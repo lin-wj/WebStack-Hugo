@@ -4,7 +4,8 @@ const SESSION_TTL = 60 * 60 * 24 * 7;
 export function readCookie(request, name) {
   const cookie = request.headers.get("Cookie") || "";
   const item = cookie.split(";").map(v => v.trim()).find(v => v.startsWith(name + "="));
-  return item ? decodeURIComponent(item.slice(name.length + 1)) : "";
+  if (!item) return "";
+  try { return decodeURIComponent(item.slice(name.length + 1)); } catch { return ""; }
 }
 
 export async function getAdminSession(request, env) {
@@ -13,6 +14,12 @@ export async function getAdminSession(request, env) {
   if (!token || !/^[a-f0-9-]{36}$/i.test(token)) return null;
   const value = await env.NAV_DB.get("session:" + token);
   return value ? { token } : null;
+}
+
+export function hasAllowedOrigin(request) {
+  const origin = request.headers.get("Origin");
+  if (!origin) return true;
+  try { return new URL(origin).origin === new URL(request.url).origin; } catch { return false; }
 }
 
 export async function requireAdmin(context) {
