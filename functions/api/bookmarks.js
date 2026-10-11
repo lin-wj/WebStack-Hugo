@@ -84,6 +84,7 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPut(context) {
   if (!hasAllowedOrigin(context.request)) return json({ error: "请求来源不合法" }, 403);
+  if (!(context.request.headers.get("Content-Type") || "").toLowerCase().startsWith("application/json")) return json({ error: "请求必须使用 JSON 格式" }, 415);
   if (!context.env.NAV_DB) return json({ error: "尚未绑定 NAV_DB KV" }, 503);
   const denied = await requireAdmin(context);
   if (denied) return denied;
