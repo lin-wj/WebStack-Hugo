@@ -22,6 +22,13 @@ function validOptionalUrl(value, maxLength = 2048) {
   }
 }
 
+function validLogo(value) {
+  if (value === undefined || value === "") return true;
+  if (typeof value !== "string" || value.length > 2048) return false;
+  if (value.startsWith("/assets/") && !value.startsWith("//") && !value.includes("..")) return true;
+  return validOptionalUrl(value, 2048);
+}
+
 function validData(data) {
   if (!data || typeof data !== "object" || Array.isArray(data) || !Array.isArray(data.categories)) return false;
   if (data.categories.length > 500) return false;
@@ -45,7 +52,7 @@ function validData(data) {
       if (typeof link.title !== "string" || !link.title.trim() || link.title.length > 300) return false;
       if (typeof link.url !== "string" || link.url.length > 2048 || !validOptionalUrl(link.url, 2048)) return false;
       if (link.description !== undefined && (typeof link.description !== "string" || link.description.length > 2000)) return false;
-      if (!validOptionalUrl(link.logo, 2048)) return false;
+      if (!validLogo(link.logo)) return false;
       if (link.tags !== undefined && (!Array.isArray(link.tags) || link.tags.length > 50 || link.tags.some(tag => typeof tag !== "string" || tag.length > 100))) return false;
       if (link.private !== undefined && typeof link.private !== "boolean") return false;
       if (link.favorite !== undefined && typeof link.favorite !== "boolean") return false;
