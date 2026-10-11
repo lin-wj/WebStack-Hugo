@@ -1,4 +1,4 @@
-import { clearSessionCookie, getAdminSession, SESSION_TTL, sessionCookie } from "../lib/auth.js";
+import { clearSessionCookie, getAdminSession, hasAllowedOrigin, SESSION_TTL, sessionCookie } from "../lib/auth.js";
 
 const json = (data, status = 200, extraHeaders = {}) => new Response(JSON.stringify(data), {
   status,
@@ -11,11 +11,14 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPost({ request, env }) {
+  if (!hasAllowedOrigin(request)) return json({ error: "请求来源不合法" }, 403);
   if (!env.NAV_DB) return json({ error: "尚未绑定 NAV_DB KV" }, 503);
   if (!env.NAV_ADMIN_PASSWORD) return json({ error: "尚未设置 NAV_ADMIN_PASSWORD 密钥" }, 503);
 
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const rateKey = "login-attempts:" + ip;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip));
+  const ipHash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
+  const rateKey = "login-attempts:" + ipHash;
   const attempts = Number(await env.NAV_DB.get(rateKey) || "0");
   if (attempts >= 10) return json({ error: "登录尝试次数过多，请稍后再试" }, 429);
 
