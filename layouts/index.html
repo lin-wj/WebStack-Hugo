@@ -31,9 +31,7 @@
       const tag = document.createElement('i');
       tag.className = 'site-tag iconfont icon-tag icon-lg mr-1';
       tag.id = 'nav-' + String(category.id || category.title).replace(/[^a-z0-9_-]/gi, '-');
-      const legacyHeading = legacyHeadings.find(item => item !== friendHeading && (item.textContent.trim() === category.title || category.title.endsWith(' / ' + item.textContent.trim())));
-      const legacyTag = legacyHeading?.querySelector('.site-tag');
-      if (legacyTag?.id) tag.id = legacyTag.id;
+      // Stable, unique anchor per managed category; sidebar links use the same ID below.
       heading.append(tag, document.createTextNode(category.title || '未分类'));
       headingRow.append(heading);
       fragment.append(headingRow);
@@ -109,9 +107,7 @@
     if (sidebar) {
       const sidebarFragment = document.createDocumentFragment();
       for (const category of payload.categories) {
-        const legacyHeading = legacyHeadings.find(item => item !== friendHeading && (item.textContent.trim() === category.title || category.title.endsWith(' / ' + item.textContent.trim())));
-        const legacyId = legacyHeading?.querySelector('.site-tag')?.id;
-        const headingId = legacyId || ('nav-' + String(category.id || category.title).replace(/[^a-z0-9_-]/gi, '-'));
+        const headingId = 'nav-' + String(category.id || category.title).replace(/[^a-z0-9_-]/gi, '-');
         const item = document.createElement('li');
         item.className = 'sidebar-item';
         const link = document.createElement('a');
