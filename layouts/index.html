@@ -9,6 +9,96 @@
 {{ partial "content_main.html" . }}
 
 <script id="webstack-initial-data" type="application/json">{{ .Site.Data.webstack | jsonify | safeJS }}</script>
+<script>
+(async function(){
+  try {
+    const response = await fetch('/api/bookmarks', {cache:'no-store'});
+    if (!response.ok) return;
+    const payload = await response.json();
+    if (!Array.isArray(payload.categories) || !payload.categories.length) return;
+    const root = document.querySelector('#content');
+    if (!root) return;
+    const fragment = document.createDocumentFragment();
+    for (const category of payload.categories) {
+      const headingRow = document.createElement('div');
+      headingRow.className = 'd-flex flex-fill';
+      const heading = document.createElement('h4');
+      heading.className = 'text-gray text-lg mb-4';
+      const tag = document.createElement('i');
+      tag.className = 'site-tag iconfont icon-tag icon-lg mr-1';
+      tag.id = 'nav-' + String(category.id || category.title).replace(/[^a-z0-9_-]/gi, '-');
+      heading.append(tag, document.createTextNode(category.title || '未分类'));
+      headingRow.append(heading);
+      fragment.append(headingRow);
+      const row = document.createElement('div');
+      row.className = 'row';
+      for (const link of (category.links || [])) {
+        const card = document.createElement('div');
+        card.className = 'url-card col-6 col-sm-6 col-md-4 col-xl-5a col-xxl-6a';
+        const body = document.createElement('div');
+        body.className = 'url-body default';
+        const anchor = document.createElement('a');
+        anchor.className = 'card no-c mb-4';
+        anchor.href = link.url || '#';
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        anchor.dataset.url = link.url || '';
+        anchor.dataset.toggle = 'tooltip';
+        anchor.dataset.placement = 'bottom';
+        anchor.dataset.originalTitle = link.description || '';
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        const content = document.createElement('div');
+        content.className = 'url-content d-flex align-items-center';
+        const imageWrap = document.createElement('div');
+        imageWrap.className = 'url-img mr-2 d-flex align-items-center justify-content-center';
+        const image = document.createElement('img');
+        image.className = 'lazy';
+        image.alt = link.title || '';
+        image.loading = 'lazy';
+        try {
+          const parsed = new URL(link.url);
+          image.src = (link.logo && /^https?:/i.test(link.logo)) ? link.logo : 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64';
+        } catch { image.src = link.logo || ''; }
+        image.onerror = function(){ this.onerror = null; this.style.visibility = 'hidden'; };
+        imageWrap.append(image);
+        const info = document.createElement('div');
+        info.className = 'url-info flex-fill';
+        const titleWrap = document.createElement('div');
+        titleWrap.className = 'text-sm overflowClip_1';
+        const strong = document.createElement('strong');
+        strong.textContent = link.title || '未命名';
+        titleWrap.append(strong);
+        const desc = document.createElement('p');
+        desc.className = 'overflowClip_1 m-0 text-muted text-xs';
+        desc.textContent = link.description || '';
+        info.append(titleWrap, desc);
+        content.append(imageWrap, info);
+        cardBody.append(content);
+        anchor.append(cardBody);
+        const go = document.createElement('a');
+        go.className = 'togo text-center text-muted is-views';
+        go.href = link.url || '#';
+        go.target = '_blank';
+        go.rel = 'noopener noreferrer';
+        go.dataset.toggle = 'tooltip';
+        go.dataset.placement = 'right';
+        go.title = '直达';
+        const goIcon = document.createElement('i');
+        goIcon.className = 'iconfont icon-goto';
+        go.append(goIcon);
+        body.append(anchor, go);
+        card.append(body);
+        row.append(card);
+      }
+      fragment.append(row);
+    }
+    root.replaceChildren(fragment);
+  } catch (error) {
+    console.warn('动态书签加载失败，继续显示静态导航。', error);
+  }
+})();
+</script>
 
 {{ partial "content_footer.html" . }}
 
