@@ -22,6 +22,7 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestPost({ request, env }) {
   if (!hasAllowedOrigin(request)) return json({ error: "请求来源不合法" }, 403);
+  if (!(request.headers.get("Content-Type") || "").toLowerCase().startsWith("application/json")) return json({ error: "请求必须使用 JSON 格式" }, 415);
   if (!env.NAV_DB) return json({ error: "尚未绑定 NAV_DB KV" }, 503);
   if (typeof env.NAV_ADMIN_PASSWORD !== "string" || !env.NAV_ADMIN_PASSWORD) return json({ error: "尚未设置 NAV_ADMIN_PASSWORD 密钥" }, 503);
 
