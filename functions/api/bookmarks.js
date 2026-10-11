@@ -11,12 +11,12 @@ function validData(data) {
   if (data.categories.length > 500) return false;
   let count = 0;
   for (const category of data.categories) {
-    if (!category || typeof category.id !== "string" || typeof category.title !== "string" || !Array.isArray(category.links)) return false;
-    if (category.title.length > 200 || category.links.length > 2000) return false;
+    if (!category || typeof category.id !== "string" || !category.id || category.id.length > 128 || typeof category.title !== "string" || !category.title.trim() || !Array.isArray(category.links)) return false;
+    if (category.title.length > 200 || category.links.length > 2000 || (category.private !== undefined && typeof category.private !== "boolean")) return false;
     count += category.links.length;
     for (const link of category.links) {
-      if (!link || typeof link.id !== "string" || typeof link.title !== "string" || typeof link.url !== "string") return false;
-      if (link.title.length > 300 || link.url.length > 2048) return false;
+      if (!link || typeof link.id !== "string" || !link.id || link.id.length > 128 || typeof link.title !== "string" || !link.title.trim() || typeof link.url !== "string") return false;
+      if (link.title.length > 300 || link.url.length > 2048 || (link.description !== undefined && (typeof link.description !== "string" || link.description.length > 2000)) || (link.logo !== undefined && (typeof link.logo !== "string" || link.logo.length > 2048)) || (link.tags !== undefined && (!Array.isArray(link.tags) || link.tags.length > 50 || link.tags.some(tag => typeof tag !== "string" || tag.length > 100))) || (link.private !== undefined && typeof link.private !== "boolean") || (link.favorite !== undefined && typeof link.favorite !== "boolean")) return false;
       try {
         const url = new URL(link.url);
         if (!["http:", "https:"].includes(url.protocol)) return false;
@@ -46,8 +46,14 @@ export async function onRequestPut(context) {
   const denied = await requireAdmin(context);
   if (denied) return denied;
 
+  const length = Number(context.request.headers.get("Content-Length") || "0");
+  if (length > 10 * 1024 * 1024) return json({ error: "数据超过 10 MB 限制，请减少书签数量或拆分导入" }, 413);
   let data;
-  try { data = await context.request.json(); } catch { return json({ error: "JSON 格式错误" }, 400); }
+  try {
+    const raw = await context.request.text();
+    if (new TextEncoder().encode(raw).byteLength > 10 * 1024 * 1024) return json({ error: "数据超过 10 MB 限制，请减少书签数量或拆分导入" }, 413);
+    data = JSON.parse(raw);
+  } catch { return json({ error: "JSON 格式错误" }, 400); }
   if (!validData(data)) return json({ error: "数据结构不正确，或包含过多项目/无效网址" }, 400);
 
   await context.env.NAV_DB.put(DATA_KEY, JSON.stringify(data));
