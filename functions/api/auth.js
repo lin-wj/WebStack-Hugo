@@ -56,6 +56,8 @@ export async function onRequestPost({ request, env }) {
     }
 
     await env.NAV_DB.delete(rateKey);
+    const previousSession = await getAdminSession(request, env);
+    if (previousSession) await env.NAV_DB.delete("session:" + previousSession.token);
     const token = crypto.randomUUID();
     await env.NAV_DB.put("session:" + token, "1", { expirationTtl: SESSION_TTL });
     return json({ authenticated: true }, 200, { "Set-Cookie": sessionCookie(token) });
