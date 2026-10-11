@@ -15,7 +15,8 @@
     const response = await fetch('/api/bookmarks', {cache:'no-store'});
     if (!response.ok) return;
     const payload = await response.json();
-    if (!Array.isArray(payload.categories) || !payload.categories.length) return;
+    if (!Array.isArray(payload.categories)) return;
+    if (!payload.initialized && !payload.categories.length) return;
     const root = document.querySelector('#content');
     if (!root) return;
     const friendHeading = root.querySelector('#friendlink')?.closest('h4') || null;
