@@ -23,14 +23,15 @@
     const friendLinks = root.querySelector('.friendlink') || null;
     const legacyHeadings = Array.from(root.querySelectorAll('h4'));
     const fragment = document.createDocumentFragment();
-    for (const category of payload.categories) {
+    for (let categoryIndex = 0; categoryIndex < payload.categories.length; categoryIndex++) {
+      const category = payload.categories[categoryIndex];
       const headingRow = document.createElement('div');
       headingRow.className = 'd-flex flex-fill';
       const heading = document.createElement('h4');
       heading.className = 'text-gray text-lg mb-4';
       const tag = document.createElement('i');
       tag.className = 'site-tag iconfont icon-tag icon-lg mr-1';
-      tag.id = 'nav-' + String(category.id || category.title).replace(/[^a-z0-9_-]/gi, '-');
+      tag.id = 'nav-category-' + categoryIndex;
       // Stable, unique anchor per managed category; sidebar links use the same ID below.
       heading.append(tag, document.createTextNode(category.title || '未分类'));
       headingRow.append(heading);
@@ -106,8 +107,9 @@
     const sidebar = document.querySelector('#sidebar .sidebar-menu-inner > ul');
     if (sidebar) {
       const sidebarFragment = document.createDocumentFragment();
-      for (const category of payload.categories) {
-        const headingId = 'nav-' + String(category.id || category.title).replace(/[^a-z0-9_-]/gi, '-');
+      for (let categoryIndex = 0; categoryIndex < payload.categories.length; categoryIndex++) {
+        const category = payload.categories[categoryIndex];
+        const headingId = 'nav-category-' + categoryIndex;
         const item = document.createElement('li');
         item.className = 'sidebar-item';
         const link = document.createElement('a');
