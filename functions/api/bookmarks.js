@@ -1,4 +1,4 @@
-import { getAdminSession, requireAdmin } from "../lib/auth.js";
+import { getAdminSession, hasAllowedOrigin, requireAdmin } from "../lib/auth.js";
 
 const DATA_KEY = "webstack_bookmarks_v1";
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
@@ -42,6 +42,7 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPut(context) {
+  if (!hasAllowedOrigin(context.request)) return json({ error: "请求来源不合法" }, 403);
   if (!context.env.NAV_DB) return json({ error: "尚未绑定 NAV_DB KV" }, 503);
   const denied = await requireAdmin(context);
   if (denied) return denied;
