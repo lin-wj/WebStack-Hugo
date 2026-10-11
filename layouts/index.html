@@ -8,6 +8,8 @@
 
 {{ partial "content_main.html" . }}
 
+<script id="webstack-initial-data" type="application/json">{{ .Site.Data.webstack | jsonify | safeJS }}</script>
+
 {{ partial "content_footer.html" . }}
 
 {{ partial "modal_search.html" . }}
