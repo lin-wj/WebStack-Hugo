@@ -50,7 +50,7 @@ function validData(data) {
       if (typeof link.id !== "string" || !link.id || link.id.length > 128 || linkIds.has(link.id)) return false;
       linkIds.add(link.id);
       if (typeof link.title !== "string" || !link.title.trim() || link.title.length > 300) return false;
-      if (typeof link.url !== "string" || link.url.length > 2048 || !validOptionalUrl(link.url, 2048)) return false;
+      if (typeof link.url !== "string" || !link.url.trim() || link.url.length > 2048 || !validOptionalUrl(link.url, 2048)) return false;
       if (link.description !== undefined && (typeof link.description !== "string" || link.description.length > 2000)) return false;
       if (!validLogo(link.logo)) return false;
       if (link.tags !== undefined && (!Array.isArray(link.tags) || link.tags.length > 50 || link.tags.some(tag => typeof tag !== "string" || tag.length > 100))) return false;
