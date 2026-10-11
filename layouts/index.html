@@ -103,6 +103,30 @@
     if (friendHeading) fragment.append(friendHeading);
     if (friendLinks) fragment.append(friendLinks);
     root.replaceChildren(fragment);
+
+    // Keep the sidebar in sync with the categories stored in KV, including newly created categories.
+    const sidebar = document.querySelector('#sidebar .sidebar-menu-inner > ul');
+    if (sidebar) {
+      const sidebarFragment = document.createDocumentFragment();
+      for (const category of payload.categories) {
+        const legacyHeading = legacyHeadings.find(item => item !== friendHeading && (item.textContent.trim() === category.title || category.title.endsWith(' / ' + item.textContent.trim())));
+        const legacyId = legacyHeading?.querySelector('.site-tag')?.id;
+        const headingId = legacyId || ('nav-' + String(category.id || category.title).replace(/[^a-z0-9_-]/gi, '-'));
+        const item = document.createElement('li');
+        item.className = 'sidebar-item';
+        const link = document.createElement('a');
+        link.href = '#' + headingId;
+        link.className = 'smooth';
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-tag icon-fw icon-lg mr-2';
+        const label = document.createElement('span');
+        label.textContent = category.title || '未分类';
+        link.append(icon, label);
+        item.append(link);
+        sidebarFragment.append(item);
+      }
+      sidebar.replaceChildren(sidebarFragment);
+    }
   } catch (error) {
     console.warn('动态书签加载失败，继续显示静态导航。', error);
   }
